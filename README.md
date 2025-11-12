@@ -1,12 +1,12 @@
 # AI-Flow-Information Capacity
 
 <p align="center">
-    <img src="assets/ic_mixed.png" width="700" />
+        <!-- <a href="README.md">中文</a> &nbsp | &nbsp <a href="README_en.md">English</a> --> 🏆 <a href="https://huggingface.co/spaces/TeleAI-AI-Flow/InformationCapacityLeaderboard"> Leaderboard</a> &nbsp&nbsp | &nbsp&nbsp 
+         🖥️ <a href="https://github.com/TeleAI-AI-Flow/InformationCapacity">GitHub</a> &nbsp&nbsp | &nbsp&nbsp 🤗 <a href="https://huggingface.co/datasets/TeleAI-AI-Flow/InformationCapacity">Hugging Face</a>&nbsp&nbsp | &nbsp&nbsp 📑&nbsp <a href="https://www.arxiv.org/abs/2511.08066">Paper</a>
 </p>
 
 <p align="center">
-        <!-- <a href="README.md">中文</a> &nbsp | &nbsp <a href="README_en.md">English</a> --> 🏆 <a href="https://huggingface.co/spaces/TeleAI-AI-Flow/InformationCapacityLeaderboard"> Leaderboard</a> &nbsp&nbsp | &nbsp&nbsp 
-         🖥️ <a href="https://github.com/TeleAI-AI-Flow/InformationCapacity">GitHub</a> &nbsp&nbsp | &nbsp&nbsp 🤗 <a href="https://huggingface.co/datasets/TeleAI-AI-Flow/InformationCapacity">Hugging Face</a>&nbsp&nbsp | &nbsp&nbsp 📑&nbsp <a href="https://www.arxiv.org/abs/2511.08066">Paper</a>
+    <img src="assets/ic_mixed.png" width="700" />
 </p>
 
 **Information Capacity** evaluates an LLM's **efficiency** based on text compression performance relative to computational complexity, harnessing the inherent correlation between **compression** and **intelligence**. 
