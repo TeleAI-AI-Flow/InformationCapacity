@@ -30,26 +30,24 @@ The computational complexity is measured by the inference floating-point operati
 We introduce a negative bias $b$ in the numerator so that different-sized models in a series have nearly identical information capacities, thus enabling convenient comparison across different model sizes and architectures.
 
 In summary, the computation formula of information capacity is expressed as:
-$$ \text{IC} = \frac{b + C - \sum_{i=2}^{L} -\log p(x_i | x_{<i} ; M)}{(L-1) \log (N_M / (L-1))} . $$
+$$ \text{IC} = \frac{\frac{1}{L-1} (C - \sum_{i=2}^{L} -\log p(x_i | x_{<i} ; M))+b}{ \log (N_M / (L-1))} . $$
 
 ## Usage
 
 Step 1. Setup an environment viable for model inference.
 ```sh
-pip install numpy torch transformers tqdm flash_attn
+pip install numpy torch transformers tqdm flash_attn huggingface_hub
 ```
 
 Step 2. Clone this repo.
 ```sh
-GIT_LFS_SKIP_SMUDGE=1 git clone https://github.com/TeleAI-AI-Flow/InformationCapacity.git
+git clone https://github.com/TeleAI-AI-Flow/InformationCapacity.git
 cd InformationCapacity
 ```
 
-Step 3. Download test dataset.
+Step 3. Download test datasets.
 ```sh
-cd ..
-git clone https://github.com/TeleAI-AI-Flow/InformationCapacity.git
-cd InformationCapacity
+hf download TeleAI-AI-Flow/InformationCapacity --repo-type=dataset --include "datasets/**" --local-dir .
 ```
 
 Step 4. Run evaluation code.
