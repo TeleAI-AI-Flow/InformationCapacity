@@ -11,14 +11,14 @@
 
 **Information Capacity** evaluates an LLM's **efficiency** based on text compression performance relative to computational complexity, harnessing the inherent correlation between **compression** and **intelligence**. 
 Larger models can predict the next token more accurately, leading to higher compression gains but at increased computational costs. 
-Consequently, a series of models with varying sizes exhibits **consistent** information capacity, which can be used to *compare model capability* across model series and *predict model performance* within a series.
-It also facilitates *dynamic routing* of different-sized models for *efficient handling* of tasks with varying difficulties, which is especially relevant to the device-edge-cloud infrastructure detailed in the **AI Flow** framework.
+Consequently, a series of models with varying sizes exhibits **consistent** information capacity, which can be used to compare model capability across model series and predict model performance within a series.
+It also facilitates dynamic routing of different-sized models for efficient handling of tasks with varying difficulties, which is especially relevant to the device-edge-cloud infrastructure detailed in the **AI Flow** framework.
 With the rapid evolution of edge intelligence, we believe that this hierarchical network will replace the mainstream cloud-centric computing scheme in the near future.
 
 Compared to existing metrics on LLM efficiency, a key difference of information capacity is that it considers the influence of **tokenizer efficiency**.
 An effective tokenizer can represent a given text with fewer tokens, thus reducing both the input and output token counts.
-This reduction not only lowers computational costs and inference delay but also facilitates *long-context memory* and *in-depth reasoning*.
-Tokenizer efficiency exhibits growing significance in light of the exploding input length and the widespread usage of test-time scaling, but is often *neglected* in LLM evaluations.
+This reduction not only lowers computational costs and inference delay but also facilitates long-context memory and in-depth reasoning.
+Tokenizer efficiency exhibits growing significance in light of the exploding input length and the widespread usage of test-time scaling, but is often **neglected** in LLM evaluations.
 We assess the information capacity of 49 models across 5 heterogeneous datasets and find consistent evidence regarding the influences of tokenizer efficiency, pretraining data, and the mixture-of-experts (MoE) architecture.
 
 ## Method
