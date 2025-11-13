@@ -29,8 +29,8 @@ The symbol length of the $i$-th token derived from entropy coding is approximate
 The computational complexity is measured by the inference floating-point operations (FLOPs) $N_M$ on a logarithmic scale according to the scaling law.
 We introduce a negative bias $b$ in the numerator so that different-sized models in a series have nearly identical information capacities, thus enabling convenient comparison across different model sizes and architectures.
 
-In summary, the computation formula of information capacity is expressed as:
-$$ \text{IC} = \frac{\frac{1}{L-1} (C - \sum_{i=2}^{L} -\log p(x_i | x_{<i} ; M))+b}{ \log (N_M / (L-1))} . $$
+In summary, the information capacity is defined as:
+$$ \text{Information Capacity} = \frac{C - \sum_{i} -\log p(x_i | x_{<i} ; M)}{ \log N_M} . $$
 
 ## Usage
 
