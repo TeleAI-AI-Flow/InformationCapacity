@@ -19,7 +19,7 @@ Compared to existing metrics on LLM efficiency, a key difference of information 
 An effective tokenizer can represent a given text with fewer tokens, thus reducing both the input and output token counts.
 This reduction not only lowers computational costs and inference delay but also facilitates long-context memory and in-depth reasoning.
 Tokenizer efficiency exhibits growing significance in light of the exploding input length and the widespread usage of test-time scaling, but is often **neglected** in LLM evaluations.
-We assess the information capacity of 49 models across 5 heterogeneous datasets and find consistent evidence regarding the influences of tokenizer efficiency, pretraining data, and the mixture-of-experts (MoE) architecture.
+We assess the information capacity of 52 models across 5 heterogeneous datasets and find consistent evidence regarding the influences of tokenizer efficiency, pretraining data, and the mixture-of-experts (MoE) architecture.
 
 ## Method
 
