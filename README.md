@@ -30,7 +30,7 @@ The computational complexity is measured by the inference floating-point operati
 We introduce a negative bias $b$ in the numerator so that different-sized models in a series have nearly identical information capacities, thus enabling convenient comparison across different model sizes and architectures.
 
 In summary, the information capacity is defined as:
-$$ \text{Information Capacity} = \frac{C - \sum_{i} -\log p(x_i | x_{<i} ; M)}{ \log N_M} . $$
+$\text{Information Capacity} = \frac{C - \sum_{i} -\log p(x_i | x_{<i} ; M)}{ \log N_M}$.
 
 ## Usage
 
