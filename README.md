@@ -9,9 +9,10 @@
     <img src="assets/ic_mixed.png" width="700" />
 </p>
 
-**Information Capacity** evaluates an LLM's **efficiency** based on text compression performance relative to computational complexity, harnessing the inherent correlation between **compression** and **intelligence**. 
+**Information Capacity** evaluates an LLM's **efficiency** based on text compression performance relative to computational complexity, leveraging the inherent correlation between **compression** and **intelligence**. 
 Larger models can predict the next token more accurately, leading to higher compression gains but at increased computational costs. 
 Consequently, a series of models with varying sizes exhibits **consistent** information capacity, which can be used to compare model capability across model series and predict model performance within a series.
+This consistency opens up the possibility of cross-scale performance prediction before actual pretraining, offering a computationally efficient alternative to conventional scaling-law fitting approaches.
 It also facilitates dynamic routing of different-sized models for efficient handling of tasks with varying difficulties, which is especially relevant to the device-edge-cloud infrastructure detailed in the **AI Flow** framework.
 With the rapid evolution of edge intelligence, we believe that this hierarchical network will replace the mainstream cloud-centric computing scheme in the near future.
 
@@ -19,7 +20,7 @@ Compared to existing metrics on LLM efficiency, a key difference of information 
 An effective tokenizer can represent a given text with fewer tokens, thus reducing both the input and output token counts.
 This reduction not only lowers computational costs and inference delay but also facilitates long-context memory and in-depth reasoning.
 Tokenizer efficiency exhibits growing significance in light of the exploding input length and the widespread usage of test-time scaling, but is often **neglected** in LLM evaluations.
-We assess the information capacity of 52 models across 5 heterogeneous datasets and find consistent evidence regarding the influences of tokenizer efficiency, pretraining data, and the mixture-of-experts (MoE) architecture.
+We assess the information capacity of 56 models across 5 heterogeneous datasets and find consistent evidence regarding the influences of tokenizer efficiency, pretraining data, and the mixture-of-experts (MoE) architecture.
 
 ## Method
 
@@ -34,7 +35,7 @@ $\text{Information Capacity} = \frac{C - \sum_{i} -\log p(x_i | x_{<i} ; M)}{ \l
 
 ## Usage
 
-Step 1. Setup an environment viable for model inference.
+Step 1. Setup an environment that can run model inference, for example:
 ```sh
 pip install numpy torch transformers tqdm flash_attn huggingface_hub
 ```
@@ -68,23 +69,23 @@ python calc_ic.py -m path/to/model -d datasets/mixed_text.jsonl -l 1024 -b 1
       url={https://arxiv.org/abs/2511.08066}, 
 }
 
-@misc{an2025aiflowperspectivesscenarios,
-      title={AI Flow: Perspectives, Scenarios, and Approaches}, 
+@misc{an2026aiflowperspectivesscenarios,
       author={Hongjun An and Wenhan Hu and Sida Huang and Siqi Huang and Ruanjun Li and Yuanzhi Liang and Jiawei Shao and Yiliang Song and Zihan Wang and Cheng Yuan and Chi Zhang and Hongyuan Zhang and Wenhao Zhuang and Xuelong Li},
-      year={2025},
-      eprint={2506.12479},
-      archivePrefix={arXiv},
-      primaryClass={cs.AI},
-      url={https://arxiv.org/abs/2506.12479}, 
+      journal={Vicinagearth}, 
+      title={{AI} Flow: perspectives, scenarios, and approaches}, 
+      year={2026},
+      volume={3},
+      number={1},
+      pages={1-32},
 }
 
-@misc{shao2025aiflownetworkedge,
-      title={AI Flow at the Network Edge}, 
-      author={Jiawei Shao and Xuelong Li},
-      year={2025},
-      eprint={2411.12469},
-      archivePrefix={arXiv},
-      primaryClass={eess.SP},
-      url={https://arxiv.org/abs/2411.12469}, 
+@misc{shao2026aiflownetworkedge,
+      title={{AI} Flow at the Network Edge},
+      author={Shao, Jiawei and Li, Xuelong},
+      journal={IEEE Network},
+      year={2026},
+      volume={40},
+      number={1},
+      pages={330-336},
 }
 ```

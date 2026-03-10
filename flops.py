@@ -437,3 +437,151 @@ def mla_model_theoretical_flops(
     }
 
     return results
+
+def qwen3_5_theoretical_flops(
+    config_path: Union[str, Path],
+    seq_len: int = 0,
+    gen_len: int = 1024,
+    batch_size: int = 1,
+    prefill_logits: str = "all",   # "all" | "last" | "none"
+) -> Dict[str, float]:
+    # ---- load config ----
+    cfg_path = Path(config_path)
+    if cfg_path.is_dir():
+        cfg_path = cfg_path / "config.json"
+    with open(cfg_path, "r") as f:
+        cfg = json.load(f)
+    if "Qwen3.5" in config_path:
+        cfg = cfg["text_config"]
+
+    # ---- required hyperparams ----
+    d_model = int(cfg["hidden_size"])
+    n_layers = int(cfg.get("num_hidden_layers", cfg.get("n_layer")))
+    n_heads = int(cfg.get("num_attention_heads", cfg.get("n_head")))
+    n_kv_heads = int(cfg.get("num_key_value_heads", n_heads))
+    d_ff = cfg.get("intermediate_size")
+    if d_ff is None: d_ff = cfg.get("moe_intermediate_size") * cfg.get("num_experts_per_tok") # For MoE variants
+    d_ff = int(d_ff)
+    vocab_size = int(cfg["vocab_size"])
+
+    linear_num_key_heads = cfg.get("linear_num_key_heads")
+    linear_num_value_heads = cfg.get("linear_num_value_heads")
+    linear_key_head_dim = cfg.get("linear_key_head_dim")
+    linear_value_head_dim = cfg.get("linear_value_head_dim")
+
+    # n_activated_experts = int(cfg.get("num_experts_per_tok", 1)) + int(cfg.get("n_shared_experts", 0))
+
+    # per-head dimension (assume divisible)
+    d_k = d_model // n_heads
+    kv_dim = n_kv_heads * d_k
+
+    B = batch_size
+    L = seq_len
+    T = gen_len
+
+    # ---- helpers (FLOPs, not TFLOPs) ----
+    # Projections per layer for a sequence of length L
+    # Q: 2 * B * L * d_model * d_model
+    # O: same
+    # K,V: 2 * B * L * d_model * kv_dim each
+    def proj_flops(L_tokens: int) -> int:
+        q = 2 * B * L_tokens * d_model * d_model
+        o = 2 * B * L_tokens * d_model * d_model
+        k = 2 * B * L_tokens * d_model * kv_dim
+        v = 2 * B * L_tokens * d_model * kv_dim
+        return q + k + v + o
+
+    # Attention core per layer
+    # Prefill (quadratic): QK^T + (softmax@V) ≈ 4 * B * n_heads * L^2 * d_k
+    # Decode (one step over cache length C): ≈ 4 * B * n_heads * C * d_k
+    def attn_core_prefill_flops(L_tokens: int) -> int:
+        return 4 * B * n_heads * (L_tokens ** 2) * d_k
+
+    def attn_core_decode_flops(cache_len: int) -> int:
+        return 4 * B * n_heads * cache_len * d_k
+
+    # MLP per layer
+    # Two up matmuls + one down: 2*B*L*d_model*d_ff + 2*B*L*d_model*d_ff + 2*B*L*d_ff*d_model = 6*B*L*d_model*d_ff
+    def mlp_flops(L_tokens: int) -> int:
+        if "gpt-oss" in config_path: return 4 * B * L_tokens * d_model * d_ff * int(cfg["num_experts_per_tok"]) # gpt-oss does not use gate function (6 → 4), registers per-expert intermediate size
+        elif "Llama-4" in config_path: return B * L_tokens * d_model * (6 * d_ff + 4 * int(cfg["intermediate_size"])) # llama-4 use 2-layer mlp without gating on attn score, before the main mlp
+        else: return 6 * B * L_tokens * d_model * d_ff
+
+    # LM head (final linear to vocab) for N tokens: 2 * B * N * d_model * vocab_size
+    def lm_head_flops(num_tokens: int) -> int:
+        return 2 * B * num_tokens * d_model * vocab_size
+
+    # ---- prefill (length L) ----
+    proj_prefill_per_layer = proj_flops(L)
+    attn_prefill_per_layer = attn_core_prefill_flops(L)
+    mlp_prefill_per_layer  = mlp_flops(L)
+
+    # stack_prefill = n_layers * (proj_prefill_per_layer + attn_prefill_per_layer + mlp_prefill_per_layer)
+    stack_prefill = n_layers // 4 * (proj_prefill_per_layer + attn_prefill_per_layer) # only 1/4 of layers use full attention
+    
+    def linear_layer_flops(L_tokens):
+        # proj + gated deltanet, excluding MLP
+        return L_tokens * d_model * (linear_num_key_heads * linear_key_head_dim * 4 + linear_num_value_heads * linear_value_head_dim * 6 + 4 * linear_num_key_heads)
+    
+    stack_prefill += n_layers // 4 * 3 * linear_layer_flops(L) # remaining 3/4 linear-attention layers
+    stack_prefill += n_layers * mlp_prefill_per_layer # MLP is the same across all layers
+
+    if prefill_logits == "all":
+        lm_prefill = lm_head_flops(L)
+    elif prefill_logits == "last":
+        lm_prefill = lm_head_flops(1)
+    elif prefill_logits == "none":
+        lm_prefill = 0
+    else:
+        raise ValueError("prefill_logits must be one of {'all','last','none'}")
+
+    prefill_total = stack_prefill + lm_prefill
+
+    # ---- decode (T steps) ----
+    # For each step, projections/MLP are for 1 new token.
+    proj_decode_per_layer_per_step = proj_flops(1)
+    mlp_decode_per_layer_per_step  = mlp_flops(1)
+
+    # Attention core sums over growing cache lengths: L, L+1, ..., L+T-1
+    # Sum_{t=0..T-1} 4 * B * n_heads * (L + t) * d_k = 4 * B * n_heads * d_k * (T*L + T*(T-1)/2)
+    attn_decode_per_layer_total = 4 * B * n_heads * d_k * (T * L + (T * (T - 1)) // 2)
+
+    # stack_decode = n_layers * (
+    #     T * (proj_decode_per_layer_per_step + mlp_decode_per_layer_per_step) + attn_decode_per_layer_total
+    # )
+    stack_decode = n_layers // 4 * (
+        T * (proj_decode_per_layer_per_step) + attn_decode_per_layer_total
+    )
+    stack_decode += n_layers // 4 * 3 * linear_layer_flops(T)
+    stack_decode += n_layers * T * mlp_decode_per_layer_per_step
+
+    # Logits at each decode step
+    lm_decode = lm_head_flops(T)
+
+    decode_total = stack_decode + lm_decode
+
+    # ---- packing results (TFLOPs) ----
+    toT = lambda x: x / 1e12
+
+    results = {
+        # Inputs
+        "batch_size": B,
+        "seq_len": L,
+        "gen_len": T,
+        # "n_activated_experts": n_activated_experts,
+        "hidden_size": d_model,
+        "num_layers": n_layers,
+        "num_heads": n_heads,
+        "num_kv_heads": n_kv_heads,
+        "intermediate_size": d_ff,
+        "vocab_size": vocab_size,
+        "prefill_logits_mode": prefill_logits,
+
+        "prefill_total_TFLOPs": toT(prefill_total),
+        "decode_total_TFLOPs": toT(decode_total),
+
+        # Totals
+        "request_total_TFLOPs": toT(prefill_total + decode_total),
+        "avg_decode_TFLOPs_per_token": toT(decode_total / max(T, 1)),
+    }
+    return results

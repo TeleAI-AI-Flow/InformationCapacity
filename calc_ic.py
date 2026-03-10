@@ -3,7 +3,7 @@ import torch
 from math import log2
 from text_size import calculate_text_size_per_token
 from likelihood import calculate_negative_log_likelihood
-from flops import gqa_model_theoretical_flops, mla_model_theoretical_flops
+from flops import gqa_model_theoretical_flops, mla_model_theoretical_flops, qwen3_5_theoretical_flops
 
 def calculate_information_capacity(
     model_path: str,
@@ -14,10 +14,12 @@ def calculate_information_capacity(
     attention_mechanism: str = None,
 ) -> float:
     if attention_mechanism is None:
-        attention_mechanism = "mla" if "deepseek" in model_path.lower() else "gqa"
+        if "deepseek" in model_path.lower(): attention_mechanism = "mla"
+        elif "qwen3.5" in model_path.lower(): attention_mechanism = "qwen3_5"
+        else: attention_mechanism = "gqa"
     else:
         attention_mechanism = attention_mechanism.lower()
-    if attention_mechanism != "gqa" and attention_mechanism != "mla":
+    if attention_mechanism != "gqa" and attention_mechanism != "mla" and attention_mechanism != "qwen3_5":
         raise NotImplementedError("attention_mechanism argument should be either gqa or mla")
     
     if numerator_bias is None:
@@ -39,6 +41,8 @@ def calculate_information_capacity(
         flops_results = gqa_model_theoretical_flops(cfg_path, gen_len=max_sample_length)
     elif attention_mechanism == "mla":
         flops_results = mla_model_theoretical_flops(cfg_path, gen_len=max_sample_length)
+    elif attention_mechanism == "qwen3_5":
+        flops_results = qwen3_5_theoretical_flops(cfg_path, gen_len=max_sample_length)
     per_token_flops = flops_results["decode_total_TFLOPs"] * 1e12 / max_sample_length
     for k, v in flops_results.items(): print(f"{k}: {v}")
     
